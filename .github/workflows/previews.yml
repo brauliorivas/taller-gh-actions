@@ -40,7 +40,7 @@ jobs:
         id: preview_step
         if: contains(['opened', 'reopened', 'synchronize'], ${{ github.event.action }})
         with:
-          source-dir: dist/taller-angular
+          source-dir: dist/taller-angular/browser/
           preview-branch: gh-pages
           umbrella-dir: pr-preview
           deploy-repository: brauliorivas/taller-gh-actions
@@ -51,7 +51,7 @@ jobs:
         uses: rossjrw/pr-preview-action@v1
         if: github.event.action == 'closed' && !github.event.pull_request.merged
         with:
-          source-dir: dist/taller-angular
+          source-dir: dist/taller-angular/browser/
           preview-branch: gh-pages
           umbrella-dir: pr-preview
           deploy-repository: brauliorivas/taller-gh-actions

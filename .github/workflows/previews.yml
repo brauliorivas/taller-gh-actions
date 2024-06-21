@@ -1,0 +1,59 @@
+name: Deploy PR previews to GitHub Pages
+concurrency: preview-${{ github.ref }}
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+jobs:
+  deploy-preview:
+    environment: github-pages
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set Up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Test app
+        run: npm run test
+
+      - name: Build App Bundle
+        run: npm run build:prod
+
+      - name: Deploy to GH-Pages
+        uses: rossjrw/pr-preview-action@v1
+        id: preview_step
+        if: contains(['opened', 'reopened', 'synchronize'], ${{ github.event.action }})
+        with:
+          source-dir: dist/taller-angular
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          deploy-repository: brauliorivas/taller-gh-actions
+          token: ${{ secrets.PR_TOKEN }}
+          action: auto
+
+      - name: Remove preview
+        uses: rossjrw/pr-preview-action@v1
+        if: github.event.action == 'closed' && !github.event.pull_request.merged
+        with:
+          source-dir: dist/taller-angular
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          deploy-repository: brauliorivas/taller-gh-actions
+          token: ${{ secrets.PR_TOKEN }}
+          action: remove
